@@ -1,13 +1,19 @@
 package com.example.newyeardinner;
 
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.os.CountDownTimer;
+import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,22 +25,44 @@ public class GameView extends View {
     private int viewHeight;
     private int points = 0;
     private List<Bitmap> bitmaps;
-    private Sprite playerBird;
+    private Sprite food;
     private final int timerInterval = 30;
+    private Sprite cat;
+    private Bitmap elka;
+    private Bitmap kota;
     public GameView(Context context) {
         super(context);
+        kota = BitmapFactory.decodeResource(getResources(), R.drawable.kotik);
         this.bitmaps = new ArrayList<Bitmap>();
-        this.bitmaps.add(BitmapFactory.decodeResource(getResources(), R.drawable.ikra));
-        this.bitmaps.add(BitmapFactory.decodeResource(getResources(), R.drawable.kola));
-        this.bitmaps.add(BitmapFactory.decodeResource(getResources(), R.drawable.mandarin));
-        this.bitmaps.add(BitmapFactory.decodeResource(getResources(), R.drawable.olivie));
-        this.bitmaps.add(BitmapFactory.decodeResource(getResources(), R.drawable.pryanik));
-        this.bitmaps.add(BitmapFactory.decodeResource(getResources(), R.drawable.tortik));
+        this.bitmaps.add(BitmapFactory.decodeResource(getResources(), R.drawable.mini_ikra));
+        this.bitmaps.add(BitmapFactory.decodeResource(getResources(), R.drawable.mini_kola));
+        this.bitmaps.add(BitmapFactory.decodeResource(getResources(), R.drawable.mini_mandarin));
+        this.bitmaps.add(BitmapFactory.decodeResource(getResources(), R.drawable.mini_olivie));
+        this.bitmaps.add(BitmapFactory.decodeResource(getResources(), R.drawable.mini_pryanik));
+        this.bitmaps.add(BitmapFactory.decodeResource(getResources(), R.drawable.mini_tortik));
         Collections.shuffle(this.bitmaps, new Random());
-        playerBird = new Sprite(10, -280, 0, 400, this.bitmaps.get(0));
+        elka = BitmapFactory.decodeResource(getResources(), R.drawable.elka);
+        food = new Sprite(10, -280, 0, 600, this.bitmaps.get(0));
+        cat = new Sprite(30, 900, 0, 0, kota);
         Timer t = new Timer();
         t.start();
     }
+//    public void сreateDialog(Activity activity) {
+//        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+//        builder.setTitle("Диалог")
+//                .setMessage("Текст в диалоге")
+//                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+//                    public void onClick(DialogInterface dialog, int id) {
+//                        Toast.makeText(activity,"Нажата кнопка 'OK'",Toast.LENGTH_SHORT).show();
+//                    }
+//                })
+//                .setNegativeButton("Отмена", new DialogInterface.OnClickListener() {
+//                    public void onClick(DialogInterface dialog, int id) {
+//                        Toast.makeText(activity,"Нажата кнопка 'Отмена'",Toast.LENGTH_SHORT).show();
+//                    }
+//                });
+//        builder.create().show();
+//    }
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
@@ -60,21 +88,34 @@ public class GameView extends View {
         p.setAntiAlias(true);
         p.setTextSize(55.0f);
         p.setColor(Color.BLACK);
+        Rect gran = new Rect(0, 0, (int)getWidth(), (int)getHeight());
+        canvas.drawBitmap(elka, null, gran, p);
         canvas.drawText(points+"", viewWidth - 100, 70, p);
-        playerBird.draw(canvas);
+        cat.draw(canvas);
+        food.draw(canvas);
     }
     protected void update () {
-        playerBird.update(timerInterval);
+        food.update(timerInterval);
         invalidate();
-        if (playerBird.getY() > viewHeight) {
+        if (food.getY() > viewHeight) {
             teleportEnemy ();
-            points +=10;
+            points -=50;
+        }
+        if (food.intersect(cat)) {
+            teleportEnemy ();
+            points += 10;
         }
     }
     private void teleportEnemy () {
-        playerBird.setX(Math.random() * (viewWidth - playerBird.getBx()));
-        playerBird.setY(-280);
+        food.setX(Math.random() * (viewWidth - food.getBx()));
+        food.setY(-280);
         Collections.shuffle(this.bitmaps, new Random());
-        playerBird.setB(this.bitmaps.get(0));
+        food.setB(this.bitmaps.get(0));
+    }
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        int eventAction = event.getAction();
+        cat.setX(event.getX() - 80);
+        return true;
     }
 }
